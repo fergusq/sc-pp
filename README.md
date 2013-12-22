@@ -22,15 +22,16 @@ To build sc-pp, you need phl environment. Using installation script is the recom
 
 #### Manual download
 
-Look more information from [http://www.kaivos.org/doc/phl/phl.html]
+Look more information from <http://www.kaivos.org/doc/phl/phl.html>
 
-### Download libraries
+### Install libraries
 
-Download phl::lang::collections -library.
+PHL implementation uses Boehm-Demers-Weiser as garbage collector. <http://www.hpl.hp.com/personal/Hans_Boehm/gc/>
+
+In Debian systems (Ubuntu, Mint, etc) bdwgc is usually in package libgc.
 
 ```
-wget -nv -O lib/phl/lang/collections.phl http://www.kaivos.org/doc/phl/src-1.2.6/phl/lang/collections.phl
-wget -nv -O lib/phl/lang/arrays.phl http://www.kaivos.org/doc/phl/src-1.2.6/phl/lang/arrays.phl
+sudo apt-get install libgc
 ```
 
 ### Compiling
@@ -38,7 +39,7 @@ wget -nv -O lib/phl/lang/arrays.phl http://www.kaivos.org/doc/phl/src-1.2.6/phl/
 Using script:
 
 ```
-tools/compile.sh src/pp_main.phl sc_pp
+PHLC_FLAGS="--path src" tools/compile.sh src/pp_main.phl sc_pp
 ```
 
 Manually: TODO
