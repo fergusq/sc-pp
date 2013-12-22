@@ -16,7 +16,7 @@ To build sc-pp, you need phl environment. Using installation script is the recom
 ```
 ~ $ mkdir phl
 ~ $ cd phl
-~/phl $ wget -nv -O installphl.sh [http://www.kaivos.org/doc/phl/installphl.sh.all]
+~/phl $ wget -nv -O installphl.sh http://www.kaivos.org/doc/phl/installphl.sh.all
 ~/phl $ bash installphl.sh
 ```
 
@@ -29,8 +29,8 @@ Look more information from [http://www.kaivos.org/doc/phl/phl.html]
 Download phl::lang::collections -library.
 
 ```
-wget -nv -O lib/phl/lang/collections.phl [http://www.kaivos.org/doc/phl/src-1.2.6/phl/lang/collections.phl]
-wget -nv -O lib/phl/lang/arrays.phl [http://www.kaivos.org/doc/phl/src-1.2.6/phl/lang/arrays.phl]
+wget -nv -O lib/phl/lang/collections.phl http://www.kaivos.org/doc/phl/src-1.2.6/phl/lang/collections.phl
+wget -nv -O lib/phl/lang/arrays.phl http://www.kaivos.org/doc/phl/src-1.2.6/phl/lang/arrays.phl
 ```
 
 ### Compiling
@@ -44,6 +44,15 @@ tools/compile.sh src/pp_main.phl sc_pp
 Manually: TODO
 
 ## Using SC Preprocessor
+
+### Comments
+
+Comment character is ;. Newline terminates comment.
+
+```
+not_comment ; comment
+not_comment
+```
 
 ### Directives
 
