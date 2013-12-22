@@ -1,0 +1,293 @@
+module lex;
+
+import phl::lang::collections;
+import err;
+
+/* erota sanat toisistaan */
+@String[] lex(@String code) [
+	var a = new @String[];
+	
+	var currWord = "";
+	
+	var len = code::len;
+	for (var i = 0; i < len; i=i+1) {
+		var ch = code[i];
+		
+		if (ch == ' ' || ch == '\t' || ch == '\r') {
+			if (currWord::len > 0) a.add(currWord);
+			currWord = "";
+			a.add("".appendch(ch));
+		} else if (ch == '#' || ch == ',' || ch == '(' || ch == ')') {
+			if (currWord::len > 0) a.add(currWord);
+			currWord = "";
+			a.add("".appendch(ch));
+		} else if (ch == '\n') {
+			if (currWord::len > 0) a.add(currWord);
+			currWord = "";
+			a.add("(NL)");
+		} else if (ch == '\\') {
+			if (currWord::len > 0) a.add(currWord);
+			currWord = "";
+			i = i + 1;
+			a.add("".appendch(code[i]));
+		} else if (ch == ';') { /* ;-merkki aloittaa kommentin */
+			if (currWord::len > 0) a.add(currWord);
+			currWord = "";
+			if (i < len-1) do { i=i+1; ch = code[i]; } while (ch != '\n' && i < len-1);
+		} else {
+			currWord = currWord.appendch(ch);
+		}
+	}
+	
+	if (currWord::len > 0) a.add(currWord);
+	currWord = "";
+	
+	return preprocess(a);
+]
+
+/* Yksinkertainen esikääntäjä */
+
+struct @PPMacro {
+	field @String[] params;
+	field @String[] body;
+	
+	@PPMacro init(@String[] params, @String[] body) [
+		this::params = params;
+		this::body = body;
+		return this;
+	]
+	
+	/* vetää makron vartalon esikääntäjän läpi ja palauttaa käsitellyn koodin */
+	@String[] eval(@String[][] args) [
+		if (null != this::params) {
+			if (args::size != this::params::size) err("wrong number of macro parameters");
+			
+			var tmp = macros;
+			macros = new @PPScope.init(null);
+			
+			/* määrittele argumentit "makroina" */
+			args iterate #(i, arg) [
+				macros::macros[this::params[i]] = new @PPMacro.init(null, arg);
+			];
+			
+			var a = preprocess(new @String[].addAll(this::body));
+			macros = tmp;
+			return a;
+		}
+		
+		return this::body;
+	]
+	
+	auto @String [
+		if (null != params())
+			return "" + params() + "" + body();
+		else return "[]" + body();
+	]
+};
+
+/* scopeluokka */
+struct @PPScope {
+	field @PPScope super_;
+	field @Hashtable<@PPMacro> macros;
+	
+	new [ this::macros = new @Hashtable<@PPMacro>; ]
+	
+	@PPScope init(@PPScope super_) [
+		this::super_ = super_;
+		return this;
+	]
+	
+	@PPMacro getMacro(@String name) [
+		var macro = this::macros[name];
+		if (null != macro) return macro;
+		else if (null != super_()) return super_().getMacro(name);
+		else return null;
+	]
+};
+
+static @PPScope macros;
+
+/* Käsittelee tokenit, etsii direktiivit ja makrot */
+@String[] preprocess(@String[] a) [
+	if (null == macros) macros = new @PPScope.init(null);
+	
+	var asize = a::size;
+	
+	/* Jos #ifdef tai #ifndef kieltää koodin tulostuksen "print" on false */
+	var print = true; var ifdepth = 0;
+	
+	for (var i = 0; i < asize; i=i+1) {
+		doc printf("%s\n", @String a);
+		
+		/* jos negatiivisen ehtolohkon sisällä */
+		if (print::n) {
+			if (i+1 >= asize) err("directive syntax error");
+			if (a[i] == "#" && a[i+1] == "ifdef" || a[i+1] == "ifndef") {
+				ifdepth = ifdepth + 1;
+			}
+			/* endif -- ehtolohko loppuu */
+			if (a[i] == "#" && a[i+1] == "endif") {
+				if (ifdepth == 1) {
+					print = true;
+					a.remove(i);
+				}
+				else ifdepth = ifdepth - 1;
+			}
+			a.remove(i);
+			
+			i = i - 1;
+			asize = a::size;
+		}
+		/* direktiivi */
+		else if (a[i] == "#") {
+			a.remove(i);
+			if (i == asize-1) err("directive syntax error");
+			var directive = a.remove(i);
+			
+			/* #define */
+			if (directive == "define") {
+				
+				/* ohittaa välit */
+				if (i == asize-2) err("directive:define syntax error");
+				while (a[i] == " " || a[i] == "\t") a.remove(i);
+				
+				/* nimi */
+				if (i == a::size) err("directive:define syntax error");
+				var macro_name = a.remove(i);
+				
+				/* parametrit */
+				var macro_params = @String[] null;
+				if (i == a::size) err("directive:define syntax error");
+				if (a[i] == "(") {
+					macro_params = new @String[];
+					if (i == a::size) err("directive:define syntax error");
+					while (a[i] == " " || a[i] == "\t") a.remove(i);
+					if (i == a::size) err("directive:define syntax error");
+					while (a.remove(i) != ")") {
+						if (i == a::size) err("directive:define syntax error");
+						while (a[i] == " " || a[i] == "\t") a.remove(i);
+						if (i == a::size) err("directive:define syntax error");
+						macro_params.add("p#"+a.remove(i));
+					}
+				}
+				/* välit */
+				while (a[i] == " " || a[i] == "\t") a.remove(i);
+				
+				/* vartalo */
+				var macro_body = new @String[];
+				if (i == a::size) err("directive:define syntax error");
+				while (a[i] != "(NL)") {
+					if (i == a::size) err("directive:define syntax error");
+					if (macro_params!=null)
+						if (macro_params.contains("p#"+a[i])) macro_body.add("p#" + a.remove(i));
+						else macro_body.add(a.remove(i));
+					else macro_body.add(a.remove(i));
+				}
+				if (i == a::size) err("directive:define syntax error");
+				a.remove(i);
+				
+				/* tallentaa makron */
+				macros::macros[macro_name] = new @PPMacro.init(macro_params, macro_body);
+				doc printf("%s\n", @String macros::macros[macro_name]);
+			}
+			
+			/* #undefine -- poistaa makron hajautustaulusta */
+			else if (directive == "undefine") {
+				/* ohittaa välit */
+				if (i == asize-2) err("directive:undefine syntax error");
+				while (a[i] == " " || a[i] == "\t") a.remove(i);
+				
+				
+				if (i == a::size) err("directive:define syntax error");
+				var macro_name = a.remove(i);
+				macros::macros[macro_name] = null;
+			}
+			
+			/* ehtolohko -- onko makro määritelty? */
+			else if (directive == "ifdef") {
+				/* ohittaa välit */
+				if (i == asize-2) err("directive:ifdef syntax error");
+				while (a[i] == " " || a[i] == "\t") a.remove(i);
+				
+				if (i == a::size) err("directive:define syntax error");
+				var macro_name = a.remove(i);
+				if (macros::macros[macro_name] == null) print = false;
+				ifdepth = 1;
+			}
+			
+			/* ehtolohko -- onko makro määrittelemätön? */
+			else if (directive == "ifndef") {
+				/* ohittaa välit */
+				if (i == asize-2) err("directive:ifndef syntax error");
+				while (a[i] == " " || a[i] == "\t") a.remove(i);
+				
+				
+				if (i == a::size) err("directive:define syntax error");
+				var macro_name = a.remove(i);
+				if (macros::macros[macro_name] != null) print = false;
+				ifdepth = 1;
+			}
+			/* ehdon loppu */
+			else if (directive == "endif") {
+				if (i == asize-2) err("directive:ifndef syntax error");
+				var macro_name = a.remove(i);
+				if (macros::macros[macro_name] != null) print = false;
+				ifdepth = 0;
+			}
+			
+			else err("unknown directive '" + directive + "'");
+			a.insert(i, "\n");
+			asize = a::size;
+			
+		/* rivinvaihto */
+		} else if (a[i] == "(NL)") {
+			a[i] = "\n";
+			i = i - 1;
+			asize = a::size;
+		} else {
+			/* tarkistaa onko token makro */
+			var macro = macros.getMacro(a[i]);
+			if (null != macro) {
+				doc printf("found macro: %s %s\n", a[i], @String macro);
+				a.remove(i);
+				/* argumentit */
+				if (i < asize-1) {
+					if (a[i] == "(" && null != macro::params) {
+						a.remove(i);
+						var macro_args = new @String[][];
+					
+						if (i == asize-2) err("macro syntax error");
+						while (true) {
+							var arg = new @String[];
+							macro_args.add(arg);
+							var depth = 0;
+							if (i == a::size) err("macro syntax error");
+							while (((a[i] == "," || a[i] == ")") && depth <= 0)::n) {
+								var c = a[i];
+								if (c == "(") depth = depth + 1;
+								else if (c == ")") depth = depth - 1;
+								a.remove(i);
+								if (i == a::size) err("macro syntax error");
+								arg.add(c);
+							}
+							
+							if (a.remove(i) == ")") break;
+						}
+						a.insertAll(i, macro.eval(macro_args));
+					}
+					else {
+						/* ei argumentteja */
+						a.insertAll(i, macro.eval(null));
+					}
+				}
+				else {
+					/* ei argumentteja */
+					a.insertAll(i, macro.eval(null));
+				}
+				i = i - 1;
+				asize = a::size;
+			}
+		}
+	}
+	return a;
+]

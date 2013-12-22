@@ -1,0 +1,9 @@
+module err;
+
+extern exit;
+expect @Function<@Void, @Integer> exit;
+
+@Void err(@String msg) [
+	err_println(msg+"\n");
+	exit(1);
+]
