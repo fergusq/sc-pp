@@ -1,8 +1,5 @@
 #include <stdio.h>
-#define PHL_STRING char*
-#define PHL_ANY void*
-#define PHL_VOID void
-#define PHL_INTEGER long
+#include "phl.h"
 
 PHL_ANY read_char() {
 	char c = getchar();
@@ -21,5 +18,3 @@ PHL_STRING read_file(PHL_STRING file_name) {
 	fclose(file);
 	return s;
 }
-
-PHL_VOID err_println(PHL_STRING s) {fprintf(stderr,"%s\n",s);}

@@ -4,13 +4,17 @@ PHLC_FLAGS=--path $(PHL_PATH)
 MAIN=src/pp_main.phl
 OUT=sc-pp
 
-all:
+all: cil.o cil_io.o
 	java -cp $(PHL_JAR) org.kaivos.proceedhl.parser.ProceedParser $(PHLC_FLAGS) $(MAIN)
-	for pil in `ls out/*.pil`; do \
-		java -cp $(PHL_JAR) org.kaivos.proceed.parser.ProceedParser $(PILC_FLAGS) --target gas --out $$pil.asm $$pil; \
-		as -o $$pil.o $$pil.asm; done
-	gcc -c -o out/phlcil.o src-c/cil.c
+	cd out; \
+	for pil in `ls *.pil`; do \
+		java -cp ../$(PHL_JAR) org.kaivos.proceed.parser.ProceedParser $(PILC_FLAGS) --target gas --out $$pil.asm $$pil; \
+		as -o ../$$pil.o $$pil.asm; done
+	#gcc -c -B src-c -o phlcil.o src-c/*.c
 	gcc -g -o $(OUT) -L"library" out/*.o -lgc
 
+%.o: src-c/%.c
+	$(CC) $(CFLAGS) -B src-c -c $< -o $@
+
 clear:
-	rm out/*.o out/*.asm out/*.pil
+	rm *.o out/*.asm out/*.pil
