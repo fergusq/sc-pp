@@ -1,7 +1,8 @@
 sc-pp
 =====
 
-SC Preprocessor
+SC Preprocessor. A derivate of the preprocessor included with the SC Interpreter (<https://github.com/fergusq/sc-interpreter/>).
+The lexer does not remove spaces from the code, and thinks any character not in range a-z, A-Z or 0-9 as token separator.
 
 ## Building
 
