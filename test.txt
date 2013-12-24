@@ -2,3 +2,7 @@
 #define min(a, b) ((a) < (b) ? (a) : (b))
 
 min(x,max(y, z))
+
+#define PI 3.14
+
+PI*3

@@ -3,6 +3,12 @@ module lex;
 import phl::lang::collections;
 import err;
 
+@String fromChar(@Integer char) [
+	@Pointer<@Integer> ptr = @Pointer<@Integer> alloc(ptr_size());
+	ptr:=char;
+	return @String ptr;
+]
+
 /* erota sanat toisistaan */
 @String[] lex(@String code) [
 	var a = new @String[];
@@ -13,23 +19,21 @@ import err;
 	for (var i = 0; i < len; i=i+1) {
 		var ch = code[i];
 		
-		if (ch == ' ' || ch == '\t' || ch == '\r') {
-			if (currWord::len > 0) a.add(currWord);
-			currWord = "";
-			a.add("".appendch(ch));
-		} else if (ch == '#' || ch == ',' || ch == '(' || ch == ')') {
-			if (currWord::len > 0) a.add(currWord);
-			currWord = "";
-			a.add("".appendch(ch));
-		} else if (ch == '\n') {
+		if (ch == '\n') {
 			if (currWord::len > 0) a.add(currWord);
 			currWord = "";
 			a.add("(NL)");
+			
+		/* Sanat voivat koostua vain merkeistä a-z A-Z 0-9 tai _; ehkä myös ääkköset? */
+		} else if (!((ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || (ch >= '0' && ch <= '9') || ch == '_')) {
+			if (currWord::len > 0) a.add(currWord);
+			currWord = "";
+			a.add(fromChar(ch));
 		} else if (ch == '\\') {
 			if (currWord::len > 0) a.add(currWord);
 			currWord = "";
 			i = i + 1;
-			a.add("".appendch(code[i]));
+			a.add(fromChar(code[i]));
 		} else if (ch == ';') { /* ;-merkki aloittaa kommentin */
 			if (currWord::len > 0) a.add(currWord);
 			currWord = "";
@@ -117,7 +121,6 @@ static @PPScope macros;
 	var print = true; var ifdepth = 0;
 	
 	for (var i = 0; i < asize; i=i+1) {
-		doc printf("%s\n", @String a);
 		
 		/* jos negatiivisen ehtolohkon sisällä */
 		if (print::n) {

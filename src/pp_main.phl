@@ -4,6 +4,9 @@ import phl::lang::io;
 import lex;
 import err;
 
+extern read_file;
+expect @ExternalFunction<@String> read_file;
+
 @Integer main(@Integer argc, @List<@String> argv) [
 	
 	if (argc != 2) {
@@ -11,20 +14,7 @@ import err;
 		return 1;
 	}
 	
-	@File file = null;
-	
-	try file = openFile(argv[1], "r");
-	catch (ex) exit(1);
-	
-	var str = "";
-	
-	var x = file.read()&0xFF;
-	while  ( x != 0-1&0xFF )
-	{
-		str = str.appendch(x);
-		x = file.read()&0xFF;
-	}
-	file.close();
+	var str = read_file(argv[1]);
 	
 	var out = lex(str);
 	var osize = out::size;

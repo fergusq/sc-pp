@@ -39,7 +39,7 @@ sudo apt-get install libgc
 Using script:
 
 ```
-PHLC_FLAGS="--path src" tools/compile.sh src/pp_main.phl sc_pp
+make all
 ```
 
 Manually: TODO
