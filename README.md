@@ -10,15 +10,22 @@ The lexer does not remove spaces from the code, and thinks any character not in 
 
 To build sc-pp, you need phl environment. Using installation script is the recommended way.
 
+### Downloading sources
+
+Cloning git-repository:
+
+```
+$ git clone https://github.com/fergusq/sc-pp.git
+```
+
 ### Installing PHL environment
 
 #### Using installation script
 
 ```
-~ $ mkdir phl
-~ $ cd phl
-~/phl $ wget -nv -O installphl.sh http://www.kaivos.org/doc/phl/installphl.sh.all
-~/phl $ bash installphl.sh
+$ cd sc-pp
+sc-pp $ wget -nv -O installphl.sh http://www.kaivos.org/doc/phl/installphl.sh.all
+sc-pp $ bash installphl.sh
 ```
 
 #### Manual download
@@ -40,7 +47,7 @@ sudo apt-get install libgc
 Using script:
 
 ```
-make all
+PHLC_FLAGS="--path src" tools/compile.sh src/pp_main.phl sc-pp
 ```
 
 Manually: TODO
