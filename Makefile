@@ -10,7 +10,6 @@ all: cil.o cil_io.o
 	for pil in `ls *.pil`; do \
 		java -cp ../$(PHL_JAR) org.kaivos.proceed.parser.ProceedParser $(PILC_FLAGS) --target gas --out $$pil.asm $$pil; \
 		as -o ../$$pil.o $$pil.asm; done
-	#gcc -c -B src-c -o phlcil.o src-c/*.c
 	gcc -g -o $(OUT) -L"library" out/*.o -lgc
 
 %.o: src-c/%.c
