@@ -19,7 +19,11 @@ import err;
 	for (var i = 0; i < len; i=i+1) {
 		var ch = code[i];
 		
-		if (ch == '\n') {
+		if (ch == ';') { /* ;-merkki aloittaa kommentin */
+			if (currWord::len > 0) a.add(currWord);
+			currWord = "";
+			if (i < len-1) do { i=i+1; ch = code[i]; } while (ch != '\n' && i < len-1);
+		} else if (ch == '\n') {
 			if (currWord::len > 0) a.add(currWord);
 			currWord = "";
 			a.add("(NL)");
@@ -34,10 +38,6 @@ import err;
 			currWord = "";
 			i = i + 1;
 			a.add(fromChar(code[i]));
-		} else if (ch == ';') { /* ;-merkki aloittaa kommentin */
-			if (currWord::len > 0) a.add(currWord);
-			currWord = "";
-			if (i < len-1) do { i=i+1; ch = code[i]; } while (ch != '\n' && i < len-1);
 		} else {
 			currWord = currWord.appendch(ch);
 		}
