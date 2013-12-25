@@ -1,0 +1,21 @@
+module files;
+
+extern fopen;
+extern fseek;
+extern ftell;
+extern rewind;
+extern fread;
+extern fclose;
+
+@String read_file(@String file_name) [
+	@String s = null;
+	@Integer size = null;
+	@File file = @File fopen(file_name, "rb");
+	fseek(file, 0, 2);
+	size = @Integer ftell(file);
+	rewind(file);
+	s = @String alloc(size);
+	fread(s, 1, size, file);
+	file.close();
+	return s;
+]

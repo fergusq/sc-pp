@@ -46,7 +46,7 @@ import err;
 	if (currWord::len > 0) a.add(currWord);
 	currWord = "";
 	
-	return preprocess(a);
+	return a;
 ]
 
 /* Yksinkertainen esikääntäjä */
