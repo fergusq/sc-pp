@@ -23,7 +23,7 @@ import err;
 			if (currWord::len > 0) a.add(currWord);
 			currWord = "";
 			if (i < len-1) do { i=i+1; ch = code[i]; } while (ch != '\n' && i < len-1);
-			a.add(fromChar("(NL)"));
+			a.add("(NL)");
 		} else if (ch == '\n') {
 			if (currWord::len > 0) a.add(currWord);
 			currWord = "";
