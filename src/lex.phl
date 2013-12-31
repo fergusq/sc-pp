@@ -75,7 +75,7 @@ struct @PPMacro {
 				macros::macros[this::params[i]] = new @PPMacro.init(null, arg);
 			];
 			
-			var a = preprocess(new @String[].addAll(this::body));
+			var a = preprocess_macro(new @String[].addAll(this::body));
 			macros = tmp;
 			return a;
 		}
@@ -291,6 +291,58 @@ static @PPScope macros;
 				i = i - 1;
 				asize = a::size;
 			}
+		}
+	}
+	return a;
+]
+
+/* Etsii vain makrot, ei direktiivejä */
+@String[] preprocess_macro(@String[] a) [
+
+	var asize = a::size;
+	
+	/* tarkistaa onko token makro */
+	for (var i = 0; i < asize; i=i+1) {
+		var macro = macros.getMacro(a[i]);
+		if (null != macro) {
+			doc printf("found macro: %s %s\n", a[i], @String macro);
+			a.remove(i);
+			/* argumentit */
+			if (i < asize-1) {
+				if (a[i] == "(" && null != macro::params) {
+					a.remove(i);
+					var macro_args = new @String[][];
+				
+					if (i == asize-2) err("macro syntax error");
+					while (true) {
+						var arg = new @String[];
+						macro_args.add(arg);
+						var depth = 0;
+						if (i == a::size) err("macro syntax error");
+						while (((a[i] == "," || a[i] == ")") && depth <= 0)::n) {
+							var c = a[i];
+							if (c == "(") depth = depth + 1;
+							else if (c == ")") depth = depth - 1;
+							a.remove(i);
+							if (i == a::size) err("macro syntax error");
+							arg.add(c);
+							}
+						
+						if (a.remove(i) == ")") break;
+					}
+					a.insertAll(i, macro.eval(macro_args));
+				}
+				else {
+					/* ei argumentteja */
+					a.insertAll(i, macro.eval(null));
+				}
+			}
+			else {
+				/* ei argumentteja */
+				a.insertAll(i, macro.eval(null));
+			}
+			i = i - 1;
+			asize = a::size;
 		}
 	}
 	return a;

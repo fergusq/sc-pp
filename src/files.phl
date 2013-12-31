@@ -1,5 +1,7 @@
 module files;
 
+import phl::lang::io;
+
 extern fopen;
 extern fseek;
 extern ftell;
